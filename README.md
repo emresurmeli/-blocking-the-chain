@@ -1,1 +1,2 @@
-# -blocking-the-chain
+# blocking-the-chain
+I try to write smart contracts
