@@ -23,9 +23,9 @@ contract MultiSignatureWallet {
     	external
         payable
     {
-        if (msg.value > 0) {
-            Deposit(msg.sender, msg.value);
-	      }
+      if (msg.value > 0) {
+        Deposit(msg.sender, msg.value);
+      }
     }
 
     modifier validRequirement(uint ownerCount, uint _required) {
