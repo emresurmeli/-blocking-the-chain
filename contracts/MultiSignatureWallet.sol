@@ -69,12 +69,12 @@ contract MultiSignatureWallet {
     function confirmTransaction(uint transactionId)
       public
     {
-      require(isOwner[msg.sender, "Sender wallet is not authorized in this MultiSig contract" );
+      require(isOwner[msg.sender], "Sender wallet is not authorized in this MultiSig contract" );
       require(transactions[transactionId].destination != 0, "This transaction does not exist");
       require(confirmations[transactionId][msg.sender] == false, "This transaction has already been confirmed");
 
       confirmations[transactionId][msg.sender] = true;
-      event Confirmation(msg.sender, transactionId);
+      // event Confirmation(msg.sender, transactionId);
       executeTransaction(transactionId);
     }
 
