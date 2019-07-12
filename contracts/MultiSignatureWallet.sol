@@ -7,6 +7,7 @@ contract MultiSignatureWallet {
     mapping (address => bool) public isOwner;
     uint public transactionCount;
     mapping (uint => Transaction) public transactions;
+    mapping (uint => mapping (address => bool)) public confirmations;
 
     struct Transaction {
       bool executed;
@@ -17,6 +18,9 @@ contract MultiSignatureWallet {
 
     event Deposit(address indexed sender, uint value);
     event Submission(uint indexed transactionId);
+    event Execution(uint indexed transactionId);
+    event ExecutionFailure(uint indexed transactionId);
+    event Confirmation(address indexed sender, uint indexed transactionId);
 
     /// @dev Fallback function allows to deposit ether.
     function()
@@ -24,7 +28,7 @@ contract MultiSignatureWallet {
         payable
     {
       if (msg.value > 0) {
-        Deposit(msg.sender, msg.value);
+        emit Deposit(msg.sender, msg.value);
       }
     }
 
@@ -70,11 +74,11 @@ contract MultiSignatureWallet {
       public
     {
       require(isOwner[msg.sender], "Sender wallet is not authorized in this MultiSig contract" );
-      require(transactions[transactionId].destination != 0, "This transaction does not exist");
+      require(transactions[transactionId].destination != address(0), "This transaction does not exist");
       require(confirmations[transactionId][msg.sender] == false, "This transaction has already been confirmed");
 
       confirmations[transactionId][msg.sender] = true;
-      // event Confirmation(msg.sender, transactionId);
+      emit Confirmation(msg.sender, transactionId);
       executeTransaction(transactionId);
     }
 
@@ -87,16 +91,16 @@ contract MultiSignatureWallet {
     function executeTransaction(uint transactionId)
       public
     {
-      require(tansactions[transactionId].executed == false, "This transaction has already been executed");
+      require(transactions[transactionId].executed == false, "This transaction has already been executed");
 
       if (isConfirmed(transactionId)) {
-        Transaction storage t = trnasactions[transactionId];
+        Transaction storage t = transactions[transactionId];
         t.executed = true;
         (bool success, bytes memory returnedData) = t.destination.call.value(t.value)(t.data);
         if (success)
-          emit Execution(uint indexed transactionId);
+          emit Execution(transactionId);
         else {
-          emit ExecutionFailiure(transactionId);
+          emit ExecutionFailure(transactionId);
           t.executed = false;
         }
       }
@@ -105,11 +109,6 @@ contract MultiSignatureWallet {
 		/*
 		 * (Possible) Helper Functions
 		 */
-    /// @dev Returns the confirmation status of a transaction.
-    /// @param transactionId Transaction ID.
-    /// @return Confirmation status.
-    function isConfirmed(uint transactionId) internal view returns (bool) {}
-
     /// @dev Adds a new transaction to the transaction mapping, if transaction does not exist yet.
     /// @param destination Transaction target address.
     /// @param value Transaction ether value.
@@ -136,7 +135,7 @@ contract MultiSignatureWallet {
     function isConfirmed(uint transactionId)
       public
       view
-      return (bool)
+      returns (bool)
     {
       uint count = 0;
       for (uint i = 0; i < owners.length; i++) {
