@@ -84,7 +84,7 @@ contract MultiSignatureWallet {
 
     /// @dev Allows an owner to revoke a confirmation for a transaction.
     /// @param transactionId Transaction ID.
-    function revokeConfirmation(uint transactionId) public {}
+    // function revokeConfirmation(uint transactionId) public {}
 
     /// @dev Allows anyone to execute a confirmed transaction.
     /// @param transactionId Transaction ID.
